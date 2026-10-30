@@ -1,0 +1,1404 @@
+[
+  {
+    "id": 1,
+    "titulo": "Evaluaciones filtradas con paginación",
+    "objetivo": "Consultar diez registros de Matemática no aprobados de 2024.",
+    "explicacion": "Reutiliza find, proyección, orden y cursor de la API. Diez filas no representan el total de la selección.",
+    "operacion": "existing",
+    "funcion": "evaluations",
+    "argumentos": {
+      "anio": 2024,
+      "materia": "MATEMATICA",
+      "aprobado": false,
+      "limite": 10
+    }
+  },
+  {
+    "id": 2,
+    "titulo": "Conteo total documental",
+    "objetivo": "Obtener el número exacto de ocurrencias almacenadas.",
+    "explicacion": "countDocuments cuenta documentos; no personas globales ni evaluaciones deduplicadas.",
+    "operacion": "countDocuments",
+    "filtro": {}
+  },
+  {
+    "id": 3,
+    "titulo": "Resumen general de aprobación y advertencias",
+    "objetivo": "Calcular total, aprobados, no aprobados, tasa y filas advertidas.",
+    "explicacion": "Reutiliza el agregado existente y su tratamiento de denominador cero. La tasa cuenta registros, no personas.",
+    "operacion": "existing",
+    "funcion": "statistics",
+    "argumentos": {}
+  },
+  {
+    "id": 4,
+    "titulo": "Volumen anual de evaluaciones",
+    "objetivo": "Comparar cuántos registros contiene cada cohorte.",
+    "explicacion": "Agrupa por año de ingreso; no utiliza el año de asignación como sustituto.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": "$anio_ingreso",
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id",
+          "registros": 1
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "titulo": "Aprobación por año y materia",
+    "objetivo": "Comparar la tasa de cada materia dentro de cada cohorte.",
+    "explicacion": "Reutiliza approval con el rango completo. MATEMATICA ITUGS permanece separada.",
+    "operacion": "existing",
+    "funcion": "approval",
+    "argumentos": {
+      "desde": 2015,
+      "hasta": 2024
+    }
+  },
+  {
+    "id": 6,
+    "titulo": "Resultados por sexo informado",
+    "objetivo": "Mostrar distribución y aprobación por sexo, incluyendo ausencias.",
+    "explicacion": "Los valores nulos son una categoría explícita; no se imputa sexo.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "sexo": "$aspirante.sexo"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "sexo": "$_id.sexo",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "sexo": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "titulo": "Evolución anual de resultados por sexo",
+    "objetivo": "Comparar resultados por sexo dentro de cada año.",
+    "explicacion": "El cruce año-sexo permite comparar cohortes sin confundir composición anual con el agregado global.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "anio": "$anio_ingreso",
+            "sexo": "$aspirante.sexo"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id.anio",
+          "sexo": "$_id.sexo",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1,
+          "sexo": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "titulo": "Interacción materia y sexo",
+    "objetivo": "Comparar resultados de cada materia según sexo informado.",
+    "explicacion": "Agrupa por dos dimensiones, conserva MATEMATICA ITUGS y sexo ausente.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "materia": "$materia",
+            "sexo": "$aspirante.sexo"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "materia": "$_id.materia",
+          "sexo": "$_id.sexo",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "materia": 1,
+          "sexo": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "titulo": "Resultados por carrera observada",
+    "objetivo": "Comparar todas las carreras por valor y estado de normalización.",
+    "explicacion": "Reutiliza careers sin filtro anual. Una etiqueta completa y otra recortada nunca se fusionan.",
+    "operacion": "existing",
+    "funcion": "careers",
+    "argumentos": {}
+  },
+  {
+    "id": 10,
+    "titulo": "Evolución anual de carreras",
+    "objetivo": "Medir volumen y aprobación de cada categoría de carrera a través de los años.",
+    "explicacion": "La clave contiene año, valor y estado; no reconstruye nombres truncados.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "anio": "$anio_ingreso",
+            "carrera": "$carrera.valor",
+            "estado": "$carrera.estado_normalizacion"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id.anio",
+          "carrera": "$_id.carrera",
+          "estado": "$_id.estado",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1,
+          "carrera": 1,
+          "estado": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "titulo": "Materia y carrera observada",
+    "objetivo": "Identificar diferencias entre materias dentro de las categorías de carrera.",
+    "explicacion": "Es un cruce materia-carrera, distinto de ordenar las carreras globales o cambiar solo un filtro.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "materia": "$materia",
+            "carrera": "$carrera.valor",
+            "estado": "$carrera.estado_normalizacion"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "materia": "$_id.materia",
+          "carrera": "$_id.carrera",
+          "estado": "$_id.estado",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "materia": 1,
+          "carrera": 1,
+          "estado": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "titulo": "Resultados por departamento educativo",
+    "objetivo": "Comparar registros y tasas por departamento de la institución.",
+    "explicacion": "No representa residencia y conserva el grupo nulo.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "departamento": "$procedencia_educativa.departamento"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "departamento": "$_id.departamento",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "registros": -1,
+          "departamento": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "titulo": "Municipios observados y precisión de la fuente",
+    "objetivo": "Analizar etiquetas de municipio dentro de su departamento y nivel de precisión.",
+    "explicacion": "Separa 2022–2024 por precisión no garantizada; no reconstruye zonas ni escuelas.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "departamento": "$procedencia_educativa.departamento",
+            "municipio": "$procedencia_educativa.municipio",
+            "precision": {
+              "$cond": [
+                {
+                  "$gte": [
+                    "$anio_ingreso",
+                    2022
+                  ]
+                },
+                "no_garantizada",
+                "etiqueta_publicada"
+              ]
+            }
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "departamento": "$_id.departamento",
+          "municipio": "$_id.municipio",
+          "precision": "$_id.precision",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "registros": -1,
+          "departamento": 1,
+          "municipio": 1,
+          "precision": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "titulo": "Tipo de institución educativa",
+    "objetivo": "Comparar aprobación y volumen entre tipos educativos.",
+    "explicacion": "Público, privado, cooperativa, municipal y ausencia se mantienen como categorías de fuente.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "tipo": "$procedencia_educativa.tipo"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "tipo": "$_id.tipo",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "registros": -1,
+          "tipo": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "titulo": "Departamento y tipo educativo en 2024",
+    "objetivo": "Analizar conjuntamente departamento y tipo dentro de la cohorte 2024.",
+    "explicacion": "Reutiliza provenance; incluye el grupo ausente que no genera relaciones en Cypher 06.",
+    "operacion": "existing",
+    "funcion": "provenance",
+    "argumentos": {
+      "anio": 2024
+    }
+  },
+  {
+    "id": 16,
+    "titulo": "Sexo y tipo de institución",
+    "objetivo": "Comparar resultados por sexo dentro de cada sector educativo.",
+    "explicacion": "Permite observar composición de dos dimensiones sin inferir causalidad ni completar datos faltantes.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "sexo": "$aspirante.sexo",
+            "tipo": "$procedencia_educativa.tipo"
+          },
+          "registros": {
+            "$sum": 1
+          },
+          "aprobados": {
+            "$sum": {
+              "$cond": [
+                "$aprobado",
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "sexo": "$_id.sexo",
+          "tipo": "$_id.tipo",
+          "registros": 1,
+          "aprobados": 1,
+          "no_aprobados": {
+            "$subtract": [
+              "$registros",
+              "$aprobados"
+            ]
+          },
+          "porcentaje_aprobacion": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$aprobados",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "sexo": 1,
+          "tipo": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "titulo": "Resultados por convocatoria y materia",
+    "objetivo": "Describir la distribución de aprobación por número de convocatoria y materia.",
+    "explicacion": "Convocatoria no equivale a intento individual; se incluye el resultado booleano como dimensión.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "convocatoria": "$numero_fecha_evaluacion",
+            "materia": "$materia",
+            "aprobado": "$aprobado"
+          },
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "convocatoria": "$_id.convocatoria",
+          "materia": "$_id.materia",
+          "aprobado": "$_id.aprobado",
+          "registros": 1
+        }
+      },
+      {
+        "$sort": {
+          "convocatoria": 1,
+          "materia": 1,
+          "aprobado": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "titulo": "Actividad mensual de asignación",
+    "objetivo": "Observar el volumen publicado por mes de asignación.",
+    "explicacion": "Extrae YYYY-MM de la cadena ISO validada. No afirma que ese mes sea el del examen ni el año de ingreso.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "$substrBytes": [
+              "$fecha_asignacion",
+              0,
+              7
+            ]
+          },
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "mes_asignacion": "$_id",
+          "registros": 1
+        }
+      },
+      {
+        "$sort": {
+          "mes_asignacion": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "titulo": "Distribución de años de nacimiento conocidos",
+    "objetivo": "Contar registros por año de nacimiento informado.",
+    "explicacion": "Excluye nulos; el valor 1900 se conserva como dato publicado y no se convierte automáticamente a ausencia.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$match": {
+          "aspirante.anio_nacimiento": {
+            "$ne": null
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": "$aspirante.anio_nacimiento",
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio_nacimiento": "$_id",
+          "registros": 1
+        }
+      },
+      {
+        "$sort": {
+          "anio_nacimiento": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "titulo": "Edad aproximada por año y materia",
+    "objetivo": "Describir edad aproximada a la asignación cuando nacimiento está informado.",
+    "explicacion": "Resta año de asignación menos nacimiento: no es edad exacta. Para este resumen se restringe a 12–80 años; se informa cuántos registros se incluyen.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$match": {
+          "aspirante.anio_nacimiento": {
+            "$ne": null
+          }
+        }
+      },
+      {
+        "$project": {
+          "anio": "$anio_ingreso",
+          "materia": 1,
+          "edad_aproximada": {
+            "$subtract": [
+              {
+                "$toInt": {
+                  "$substrBytes": [
+                    "$fecha_asignacion",
+                    0,
+                    4
+                  ]
+                }
+              },
+              "$aspirante.anio_nacimiento"
+            ]
+          }
+        }
+      },
+      {
+        "$match": {
+          "edad_aproximada": {
+            "$gte": 12,
+            "$lte": 80
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": {
+            "anio": "$anio",
+            "materia": "$materia"
+          },
+          "registros_incluidos": {
+            "$sum": 1
+          },
+          "edad_minima": {
+            "$min": "$edad_aproximada"
+          },
+          "edad_maxima": {
+            "$max": "$edad_aproximada"
+          },
+          "edad_media": {
+            "$avg": "$edad_aproximada"
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id.anio",
+          "materia": "$_id.materia",
+          "registros_incluidos": 1,
+          "edad_minima": 1,
+          "edad_maxima": 1,
+          "edad_media": {
+            "$round": [
+              "$edad_media",
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1,
+          "materia": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "titulo": "Completitud de datos por cohorte",
+    "objetivo": "Cuantificar ausencias por campo dentro de cada año.",
+    "explicacion": "Cuenta nulos normalizados sin reemplazarlos. Las ausencias por campo pueden coexistir en la misma fila.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": "$anio_ingreso",
+          "registros": {
+            "$sum": 1
+          },
+          "nacimiento_ausente": {
+            "$sum": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$aspirante.anio_nacimiento",
+                    null
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          },
+          "sexo_ausente": {
+            "$sum": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$aspirante.sexo",
+                    null
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          },
+          "carrera_ausente": {
+            "$sum": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$carrera.valor",
+                    null
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          },
+          "departamento_ausente": {
+            "$sum": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$procedencia_educativa.departamento",
+                    null
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          },
+          "municipio_ausente": {
+            "$sum": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$procedencia_educativa.municipio",
+                    null
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          },
+          "tipo_ausente": {
+            "$sum": {
+              "$cond": [
+                {
+                  "$eq": [
+                    "$procedencia_educativa.tipo",
+                    null
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id",
+          "registros": 1,
+          "nacimiento_ausente": 1,
+          "sexo_ausente": 1,
+          "carrera_ausente": 1,
+          "departamento_ausente": 1,
+          "municipio_ausente": 1,
+          "tipo_ausente": 1,
+          "porcentaje_sin_nacimiento": {
+            "$round": [
+              {
+                "$multiply": [
+                  {
+                    "$divide": [
+                      "$nacimiento_ausente",
+                      "$registros"
+                    ]
+                  },
+                  100
+                ]
+              },
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "titulo": "Frecuencia de advertencias de calidad",
+    "objetivo": "Identificar cuáles advertencias afectan más registros.",
+    "explicacion": "Descompone la lista con $unwind. Una fila con varias advertencias contribuye a varias categorías, no a personas distintas.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$unwind": "$calidad.advertencias"
+      },
+      {
+        "$group": {
+          "_id": "$calidad.advertencias",
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "advertencia": "$_id",
+          "registros": 1
+        }
+      },
+      {
+        "$sort": {
+          "registros": -1,
+          "advertencia": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "titulo": "Carreras recortadas por cohorte y texto original",
+    "objetivo": "Medir la pérdida de precisión conservando el texto original.",
+    "explicacion": "Muestra original y normalizado, incluidos espacios de origen. No asigna equivalencias de carrera.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$match": {
+          "carrera.estado_normalizacion": "recortada"
+        }
+      },
+      {
+        "$group": {
+          "_id": {
+            "anio": "$anio_ingreso",
+            "original": "$originales.carrera_objetivo",
+            "normalizado": "$carrera.valor"
+          },
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id.anio",
+          "original": "$_id.original",
+          "normalizado": "$_id.normalizado",
+          "registros": 1
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1,
+          "original": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "titulo": "Repeticiones exactas de la fuente",
+    "objetivo": "Contar grupos de filas originales idénticas y ocurrencias adicionales dentro de cada archivo.",
+    "explicacion": "Agrupa las doce columnas originales junto con la huella de archivo. No elimina duplicados ni equipara una repetición a un examen duplicado demostrado.",
+    "operacion": "aggregate",
+    "allowDiskUse": true,
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "archivo_sha256": "$fuente.sha256_archivo",
+            "originales": "$originales"
+          },
+          "ocurrencias": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$match": {
+          "ocurrencias": {
+            "$gt": 1
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": null,
+          "grupos_repetidos": {
+            "$sum": 1
+          },
+          "ocurrencias_adicionales": {
+            "$sum": {
+              "$subtract": [
+                "$ocurrencias",
+                1
+              ]
+            }
+          },
+          "maxima_multiplicidad": {
+            "$max": "$ocurrencias"
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "grupos_repetidos": 1,
+          "ocurrencias_adicionales": 1,
+          "maxima_multiplicidad": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "titulo": "Aspirantes de cohorte y carga de registros",
+    "objetivo": "Contar identificadores año-correlativo por cohorte y sus registros asociados.",
+    "explicacion": "No suma identidades de años distintos como si fueran personas globales. Promedio calculado por aspirante de cohorte.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "anio": "$anio_ingreso",
+            "cohorte": "$aspirante.cohorte_id"
+          },
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": "$_id.anio",
+          "aspirantes_cohorte": {
+            "$sum": 1
+          },
+          "registros": {
+            "$sum": "$registros"
+          },
+          "minimo_registros": {
+            "$min": "$registros"
+          },
+          "maximo_registros": {
+            "$max": "$registros"
+          },
+          "promedio_registros": {
+            "$avg": "$registros"
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id",
+          "aspirantes_cohorte": 1,
+          "registros": 1,
+          "minimo_registros": 1,
+          "maximo_registros": 1,
+          "promedio_registros": {
+            "$round": [
+              "$promedio_registros",
+              2
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "titulo": "Histograma de registros por aspirante de cohorte",
+    "objetivo": "Determinar cuántas cohortes individuales tienen uno, dos o más registros.",
+    "explicacion": "La cantidad es de registros publicados, no intentos inferidos; incluye repeticiones originales.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": "$aspirante.cohorte_id",
+          "registros": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": "$registros",
+          "aspirantes_cohorte": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "registros_por_aspirante": "$_id",
+          "aspirantes_cohorte": 1
+        }
+      },
+      {
+        "$sort": {
+          "registros_por_aspirante": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "titulo": "Aprobación en ambas materias dentro de la cohorte",
+    "objetivo": "Consultar hasta cien aspirantes de 2024 con ambas materias aprobadas.",
+    "explicacion": "Reutiliza both_subjects, devuelve truncado si hay más. La lista acotada no es un total ni demuestra admisión definitiva.",
+    "operacion": "existing",
+    "funcion": "both_subjects",
+    "argumentos": {
+      "anio": 2024,
+      "limite": 100
+    }
+  },
+  {
+    "id": 28,
+    "titulo": "Múltiples carreras informadas dentro del año",
+    "objetivo": "Contar aspirantes de cohorte con más de una categoría de carrera observada.",
+    "explicacion": "El conjunto usa valor y estado, excluye carrera ausente y no sigue a personas entre años. No infiere el orden de cambios.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$match": {
+          "carrera.valor": {
+            "$ne": null
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": {
+            "anio": "$anio_ingreso",
+            "cohorte": "$aspirante.cohorte_id"
+          },
+          "carreras": {
+            "$addToSet": {
+              "valor": "$carrera.valor",
+              "estado": "$carrera.estado_normalizacion"
+            }
+          }
+        }
+      },
+      {
+        "$project": {
+          "anio": "$_id.anio",
+          "cantidad_carreras": {
+            "$size": "$carreras"
+          }
+        }
+      },
+      {
+        "$match": {
+          "cantidad_carreras": {
+            "$gt": 1
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": "$anio",
+          "aspirantes_con_multiples_carreras": {
+            "$sum": 1
+          },
+          "maximo_categorias_observadas": {
+            "$max": "$cantidad_carreras"
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id",
+          "aspirantes_con_multiples_carreras": 1,
+          "maximo_categorias_observadas": 1
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "titulo": "Coexistencia de resultados por cohorte y materia",
+    "objetivo": "Contar aspirantes con registros aprobados y no aprobados de la misma materia dentro del año.",
+    "explicacion": "No presupone mejoría, secuencia de intentos ni fecha real de examen. Solo constata coexistencia de resultados publicados.",
+    "operacion": "aggregate",
+    "pipeline": [
+      {
+        "$group": {
+          "_id": {
+            "anio": "$anio_ingreso",
+            "cohorte": "$aspirante.cohorte_id",
+            "materia": "$materia"
+          },
+          "resultados": {
+            "$addToSet": "$aprobado"
+          }
+        }
+      },
+      {
+        "$match": {
+          "resultados": {
+            "$all": [
+              true,
+              false
+            ]
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": {
+            "anio": "$_id.anio",
+            "materia": "$_id.materia"
+          },
+          "aspirantes_con_ambos_resultados": {
+            "$sum": 1
+          }
+        }
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "anio": "$_id.anio",
+          "materia": "$_id.materia",
+          "aspirantes_con_ambos_resultados": 1
+        }
+      },
+      {
+        "$sort": {
+          "anio": 1,
+          "materia": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "titulo": "Catálogos reales con estado de carrera",
+    "objetivo": "Consultar los dominios observados para filtros y análisis.",
+    "explicacion": "Reutiliza catalogs: $facet para años, materias y tipos, más careers compartida para categorías de carrera. No se considera otra consulta nueva por cada opción del catálogo.",
+    "operacion": "existing",
+    "funcion": "catalogs",
+    "argumentos": {}
+  }
+]
