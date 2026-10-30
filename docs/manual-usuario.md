@@ -12,7 +12,7 @@ alternativos, el responsable técnico debe indicar la dirección correspondiente
 Para instalar y arrancar el sistema consultar [README](../README.md) y el
 [manual técnico](manual-tecnico.md). No se requiere iniciar sesión en la aplicación.
 
-La navegación lateral contiene cuatro opciones. En una pantalla móvil se abre
+La navegación lateral contiene cinco opciones, incluida Consultas NoSQL. En una pantalla móvil se abre
 con el botón de menú de la esquina superior izquierda. La opción activa queda
 resaltada. El encabezado indica Bases disponibles cuando la comprobación de ambas
 bases responde correctamente; el icono de recarga permite comprobar de nuevo.
@@ -170,7 +170,30 @@ límite. Ajustar los filtros para explorar otra selección. La selección por or
 de identificador no es una muestra estadísticamente representativa: sus proporciones
 no deben interpretarse como tasas de toda la base.
 
-## 6. Carga, respuestas vacías y errores
+## 6. Consultas NoSQL
+
+Abrir **Consultas NoSQL** en la navegación. La pestaña MongoDB ofrece las 30 consultas
+del catálogo, y Neo4j las seis consultas Cypher. Seleccionar un número y pulsar
+**Ejecutar consulta**. Cambiar el selector no ejecuta consultas automáticamente.
+
+En MongoDB se muestran los argumentos predefinidos y se conservan sus límites; no
+se introduce código. En Neo4j se completan año, materia, resultado, carrera o rango
+según la consulta elegida. En 04, usar un identificador conocido de cohorte o el
+botón **Seleccionar un identificador real de 2024**, que lo obtiene de los datos.
+
+La salida muestra tabla, tiempo e id. Las Cypher 03 y 04 muestran además un grafo
+con los mismos controles y lista accesible del explorador. Las consultas 03/05
+conservan un límite de 100 resultados; si se alcanza, se informa como resultado
+limitado. No interpretar una lista acotada como total de toda la base. La consulta
+MongoDB 24 puede tardar hasta un minuto porque compara registros originales.
+
+Las treinta MongoDB y las seis Cypher se pueden ejecutar y visualizar desde esta
+sección; ninguna queda exclusivamente en la documentación. Los agregados Neo4j
+se ejecutan realmente en Neo4j, aunque haya estadísticas parecidas en MongoDB.
+No se admite texto de consultas arbitrarias ni se pueden modificar datos.
+Más detalle: [Consultas NoSQL](explorador-consultas.md).
+
+## 7. Carga, respuestas vacías y errores
 
 Durante una consulta aparece un indicador de carga. No interpretar la ausencia de
 una tarjeta temporal como cero evaluaciones. **Sin resultados** significa que la
@@ -191,7 +214,7 @@ Un error no se reemplaza con estadísticas inventadas. Si Neo4j no está disponi
 las consultas MongoDB pueden seguir funcionando. No intentar resolver errores
 borrando bases, cambiando contraseñas o volviendo a cargar los CSV.
 
-## 7. Interpretación y límites
+## 8. Interpretación y límites
 
 El sistema cuenta registros de evaluación, incluidas repeticiones de la fuente.
 No cuenta personas únicas de toda la década. Aprobar Matemática y Computación no

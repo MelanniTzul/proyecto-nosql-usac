@@ -3,8 +3,8 @@
 ## Alcance e inventario
 
 Catálogo de 30 consultas distintas sobre `usac_admisiones.evaluaciones`, en la rama
-`feature/consultas-mongodb`. No se añadieron endpoints ni se cambiaron los contratos
-de React, FastAPI, ETL o Neo4j. No se crean colecciones, índices ni resúmenes persistidos.
+`feature/consultas-mongodb`. El catálogo original se conserva; la integración posterior añade tres rutas
+cerradas de ejecución sin cambiar contratos de las pantallas existentes, ETL o Neo4j. No se crean colecciones, índices ni resúmenes persistidos.
 
 Las siete operaciones existentes de la API son válidas y se reutilizan directamente:
 01 evaluations, 03 statistics, 05 approval, 09 careers, 15 provenance,
@@ -2032,3 +2032,13 @@ porque conserva también ausencias y precisión; no debe compararse directamente
 con los 448 nodos LocalidadEducativa, que omiten datos nulos. La consulta 27 devuelve
 100 registros con truncado=true: es una lista limitada, no el número total de
 aspirantes que aprobaron ambas materias.
+
+
+## Ejecución desde React
+
+La sección **Consultas NoSQL**, ruta /consultas, permite seleccionar y ejecutar
+las 30 entradas de este documento; ninguna queda solo documentada. La pestaña
+Neo4j también ejecuta los seis archivos Cypher originales, con tabla y grafo cuando
+corresponde. Se reutiliza el catálogo sin reconstruir ni borrar consultas.
+Ver [integración, límites y seguridad](explorador-consultas.md). No se admiten
+pipelines ni texto Cypher arbitrario desde el navegador.

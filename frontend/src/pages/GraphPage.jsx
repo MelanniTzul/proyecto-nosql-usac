@@ -8,7 +8,7 @@ const GraphCanvas = lazy(() => import('../components/graph/GraphCanvas'));
 const types = { Evaluacion: 'Evaluación', AspiranteCohorte: 'Aspirante de cohorte', Cohorte: 'Año de ingreso', Materia: 'Materia', CarreraObservada: 'Carrera observada', LocalidadEducativa: 'Localidad educativa', Departamento: 'Departamento', TipoInstitucion: 'Tipo de institución' };
 const colors = ['#426fb2','#287b83','#517c9c','#c09541','#8b6fa6','#9d7965','#6f8b63','#778593'];
 
-function GraphView({ data, meta, onCohort, canReturn, onReturn }) {
+export function GraphView({ data, meta, onCohort, canReturn, onReturn }) {
   const [selectedId, setSelectedId] = useState(null);
   const selected = data.nodes.find((n) => n.id === selectedId);
   return <><div className="graph-summary"><div><span className="badge graph-badge">NEO4J</span><strong>{data.nodes.filter((n) => n.tipo === 'Evaluacion').length} evaluaciones</strong><span>{data.nodes.length} nodos · {data.edges.length} relaciones</span></div>{canReturn && <button className="button secondary" onClick={onReturn}>← Volver a filtros</button>}</div>

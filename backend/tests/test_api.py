@@ -31,7 +31,7 @@ class APITests(unittest.TestCase):
     def test_swagger_and_openapi(self):
         self.assertEqual(self.client.get('/docs').status_code, 200)
         spec = self.client.get('/openapi.json').json()
-        self.assertEqual(len(spec['paths']), 11)
+        self.assertEqual(len(spec['paths']), 14)
         self.assertIn('422',spec['paths']['/api/evaluaciones']['get']['responses'])
         self.assertEqual(self.client.get('/api/health').json(), {'status':'ok','service':'usac-admisiones-api'})
 
