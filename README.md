@@ -153,3 +153,9 @@ Mensaje propuesto para el commit manual de esta etapa:
 ```text
 feat: configurar conexiones a bases de datos NoSQL
 ```
+
+## Etapa 3: análisis CSV
+
+La lectura, normalización, validación y los reportes están disponibles sin acceder
+ a bases de datos. Consultar [ejecución y reglas](docs/etapa-3.md). Las dos cargas autorizadas a MongoDB verificaron 208,453 documentos sin duplicados
+al repetir el proceso. Neo4j permanece pendiente.
