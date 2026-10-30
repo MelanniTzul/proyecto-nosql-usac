@@ -3,17 +3,21 @@
 Proyecto individual de Bases de Datos NoSQL, Ingeniería en Ciencias y Sistemas,
 Universidad de San Carlos de Guatemala.
 
-## Estado: segunda etapa
+## Estado: etapa 4 validada
 
 React consulta el endpoint real de FastAPI y muestra conexión, espera, error y
 reintento. MongoDB y Neo4j se ejecutan en Docker con autenticación y persistencia.
-FastAPI comprueba ambas bases con sus controladores oficiales. El ETL, las consultas,
-el dashboard y el explorador de grafos están pendientes; no hay resultados simulados.
+FastAPI comprueba ambas bases con sus controladores oficiales. El ETL cargó
+208,453 evaluaciones en MongoDB y su proyección en Neo4j: 265,293 nodos y
+1,222,881 relaciones. Se verificaron dos pasadas completas sin duplicados y
+seis consultas Cypher sobre datos reales. Quedan pendientes los endpoints
+analíticos, el dashboard y el explorador de grafos en React.
 
 La configuración y las pruebas de conexión se explican en [la etapa 2](docs/etapa-2.md).
 
 Los CSV de la [fuente oficial](https://datosabiertos.ingenieria.usac.edu.gt/en/dataset/pruebas-especificas)
-deben inspeccionarse antes de implementar transformaciones o fijar los modelos.
+se inspeccionaron para definir las transformaciones y los modelos. Las reglas
+y limitaciones están documentadas en las etapas 3 y 4.
 
 ## Requisitos e instalación
 
@@ -158,4 +162,12 @@ feat: configurar conexiones a bases de datos NoSQL
 
 La lectura, normalización, validación y los reportes están disponibles sin acceder
  a bases de datos. Consultar [ejecución y reglas](docs/etapa-3.md). Las dos cargas autorizadas a MongoDB verificaron 208,453 documentos sin duplicados
-al repetir el proceso. Neo4j permanece pendiente.
+al repetir el proceso. La proyección a Neo4j se completó en la etapa 4.
+
+## Etapa 4: proyección a Neo4j
+
+El proyector, la simulación y seis consultas están documentados en
+[etapa 4](docs/etapa-4.md). MongoDB y Neo4j contienen 208,453 evaluaciones;
+el grafo tiene 265,293 nodos y 1,222,881 relaciones. Dos pasadas completas
+confirmaron la idempotencia, sin duplicados ni cambios de propiedades.
+El siguiente paso es exponer estadísticas y consultas desde FastAPI.
