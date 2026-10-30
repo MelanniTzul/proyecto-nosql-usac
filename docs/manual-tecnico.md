@@ -253,7 +253,7 @@ Ante puertos ocupados, usar backend 8001 y
 `API_PROXY_TARGET=http://127.0.0.1:8001 FRONTEND_PORT=5174 npm run dev --prefix frontend`.
 No detener servicios ajenos. Los comandos se ejecutan desde la raíz.
 
-La API contiene 11 rutas GET. Las dos de salud mantienen su contrato original;
+La API contiene 14 rutas GET, incluidas tres rutas del explorador cerrado de consultas. Las dos de salud mantienen su contrato original;
 las nuevas responden con status, data y meta, o status:error y error seguro.
 422 indica parámetros inválidos; 404, recurso concreto inexistente; 503, base
 inaccesible; 504, timeout; 500, error interno. La consulta de evaluaciones usa
@@ -286,7 +286,8 @@ en ETL/pruebas; no se cuentan como consultas analíticas adicionales.
 El [catálogo MongoDB](consultas-mongodb.md) incorpora ahora **30 consultas diferentes**:
 reutiliza las siete operaciones de la tabla y añade 23 análisis. Incluye un find,
 un countDocuments y análisis de agregación por año, materia, sexo, carrera,
-procedencia y calidad. No se crearon nuevos endpoints para duplicar la API.
+procedencia y calidad. Se añadieron tres rutas de catálogo/ejecución por id, sin duplicar las 30 consultas
+ni sus funciones existentes. No se acepta código arbitrario desde el cliente.
 
 ```bash
 PYTHONPATH=backend .venv/bin/python -m app.queries.mongodb --list
@@ -349,13 +350,13 @@ npm run test:e2e --prefix frontend
 git diff --check
 ```
 
-La suite backend tiene 46 pruebas, incluyendo el catálogo MongoDB; incluye integración real de lectura, salud,
+La suite backend tiene 54 pruebas, incluyendo el explorador de consultas; incluye integración real de lectura, salud,
 ETL y grafo. Las pruebas que simulan cargas utilizan dobles en memoria, no las
 bases reales. test_api_readonly requiere USAC_RUN_DB_TESTS=1; las pruebas de salud
 existentes requieren bases disponibles incluso sin esa bandera. No invocar --execute
 para ejecutar pruebas.
 
-Frontend: 13 pruebas Vitest/Testing Library y 8 recorridos Playwright con endpoints
+Frontend: 17 pruebas Vitest/Testing Library y 10 recorridos Playwright con endpoints
 reales. Playwright necesita Chrome y puertos libres 8010/5180, inicia sus servidores
 propios y los cierra al terminar. No sustituye estadísticas con datos simulados;
 solo provoca un fallo de red en el caso específico de recuperación.
@@ -386,9 +387,9 @@ Versionar código, pruebas, manuales, plantillas .env.example y lockfiles.
 Excluir .env, frontend/.env.local, contraseñas, data/raw, data/reports, .venv,
 node_modules, dist, cachés y archivos temporales. No incluir credenciales reales
 en capturas o manuales. Revisar git status y git diff --check antes de preparar
-el commit. Las etapas 5 y 6 ya están publicadas. El catálogo de 30 consultas de
-feature/consultas-mongodb permanece pendiente de autorización para publicación;
-no se ha realizado commit, merge ni push en esta nueva etapa.
+el commit. El catálogo de 30 consultas ya está integrado en develop. Esta integración
+en React permanece en feature/explorador-consultas, pendiente de autorización para
+publicación; no se ha realizado commit, merge ni push en esta nueva etapa.
 
 ### Verificación de este cierre documental
 
@@ -399,3 +400,21 @@ en 208453 documentos MongoDB, 265293 nodos y 1222881 relaciones Neo4j. La revisi
 80 archivos versionados o candidatos no encontró secretos locales, credenciales
 incrustadas, originales ni reportes generados incluidos en Git. Los enlaces locales
 de README y ambos manuales se comprobaron. El índice Git permanece vacío.
+
+
+## 11. Integración obligatoria de consultas en React
+
+La sección [Consultas NoSQL](explorador-consultas.md) en /consultas integra 30/30
+consultas MongoDB y 6/6 Cypher. El backend resuelve un catálogo cerrado mediante
+GET /api/consultas, /api/consultas/mongodb/{id} y /api/consultas/neo4j/{id}.
+MongoDB reutiliza execute_query y las funciones/pipelines originales. Neo4j ejecuta
+los seis archivos existentes, con parámetros validados y sesiones de lectura.
+Las consultas 03/04 devuelven tablas y grafos; los demás resultados son tablas.
+No hay consultas que queden solo documentadas. Los controles y pruebas nuevas no
+reemplazan las pantallas ni endpoints anteriores.
+
+La ruta MongoDB puede esperar hasta 60 segundos en el hilo de esa consulta, sin
+alterar el timeout de las rutas anteriores; la nueva página permite 70 segundos
+de espera. La serialización tiene un máximo de 500 filas por lista. En grafos se
+mantienen 500 nodos y 800 relaciones. Esta integración no materializa resumen_carrera
+ni modifica fuentes. Para uso, parámetros y verificaciones consultar su documento.

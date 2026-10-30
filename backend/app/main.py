@@ -10,6 +10,7 @@ from app.api.health import router as health_router
 from app.core.config import Settings, HTTPSettings
 from app.core.errors import install_handlers
 from app.api.analytics import router as analytics_router
+from app.api.query_explorer import router as queries_router
 from app.database.connections import DatabaseConnections
 
 
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
     install_handlers(application)
     application.include_router(health_router, prefix="/api")
     application.include_router(analytics_router, prefix="/api")
+    application.include_router(queries_router, prefix="/api")
     return application
 
 

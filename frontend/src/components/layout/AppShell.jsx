@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import useApi from '../../hooks/useApi';
-const links = [['/', 'Resumen general', '◫'], ['/estadisticas', 'Estadísticas', '▥'], ['/evaluaciones', 'Evaluaciones', '☷'], ['/grafo', 'Explorador de grafos', '◇']];
+const links = [['/', 'Resumen general', '◫'], ['/estadisticas', 'Estadísticas', '▥'], ['/evaluaciones', 'Evaluaciones', '☷'], ['/grafo', 'Explorador de grafos', '◇'], ['/consultas', 'Consultas NoSQL', '≡']];
 
 export default function AppShell() {
   const [open, setOpen] = useState(false);

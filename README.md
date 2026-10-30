@@ -13,7 +13,7 @@ Incluye un catálogo ejecutable de 30 consultas MongoDB que reutiliza la API exi
 
 - [Manual técnico](docs/manual-tecnico.md): arquitectura, instalación, variables,
   Docker, ETL, modelos, inventario de consultas, recuperación y pruebas.
-- [Manual de usuario](docs/manual-usuario.md): navegación, cuatro pantallas,
+- [Manual de usuario](docs/manual-usuario.md): navegación, pantallas y Consultas NoSQL,
   filtros, paginación, grafo y resolución de problemas.
 - [ETL](docs/etapa-3.md), [Neo4j y seis consultas Cypher](docs/etapa-4.md),
   [API y Swagger](docs/etapa-5.md), [frontend y pruebas de navegador](docs/etapa-6.md).
@@ -28,12 +28,12 @@ Ejecutar los comandos desde la raíz del proyecto en Linux.
 
 Usar la carpeta de entrega completa. Si se obtiene de GitHub, la rama publicada
 debe contener las etapas 5 y 6 y los manuales: el main histórico no garantiza eso.
-**El catálogo actual está en feature/consultas-mongodb y sigue pendiente de
-publicación**. La aplicación previa ya está publicada en feature/react-dashboard.
-Para obtener todo el contenido actual, después de publicar la rama del catálogo:
+**La integración actual está en feature/explorador-consultas y sigue pendiente
+de publicación**. El catálogo de consola ya está integrado en develop.
+Para obtener todo el contenido actual, después de publicar esta rama:
 
 ```bash
-git clone --branch feature/consultas-mongodb https://github.com/MelanniTzul/proyecto-nosql-usac.git
+git clone --branch feature/explorador-consultas https://github.com/MelanniTzul/proyecto-nosql-usac.git
 cd proyecto-nosql-usac
 ```
 
@@ -174,8 +174,8 @@ npm run test:e2e --prefix frontend
 git diff --check
 ```
 
-Se verificaron 46 pruebas backend, 13 frontend y 8 de navegador, incluyendo
-la integración real de las 30 consultas del catálogo. La integración
+Se verificaron 54 pruebas backend, 17 frontend y 10 de navegador, incluyendo
+la ejecución y visualización de las 30 consultas MongoDB y las 6 Cypher. La integración
 real es de lectura; las pruebas que simulan cargas usan dobles en memoria.
 Playwright requiere Google Chrome, crea servidores propios en 8010 y 5180 y los
 cierra al finalizar; esos puertos deben estar libres. No requiere apagar los
@@ -206,7 +206,11 @@ Python/PyMongo ejecutable, explicación y resultados reales en
 Se reutilizan directamente las siete operaciones válidas de
 backend/app/services/mongo_analytics.py y se añaden 23 análisis complementarios.
 No se agregan 30 endpoints ni se cuentan cambios de filtros como consultas nuevas.
-Las rutas existentes conservan sus contratos. El catálogo cubre el requisito
+Las rutas existentes conservan sus contratos. La sección **Consultas NoSQL** en
+http://127.0.0.1:5173/consultas permite seleccionar y ejecutar las 30 consultas
+MongoDB y las seis Cypher, con tablas y grafos en los casos de caminos. Tres rutas
+GET cerradas gestionan catálogo y ejecución por id; no se acepta código arbitrario.
+Ver [uso y seguridad del explorador](docs/explorador-consultas.md). El catálogo cubre el requisito
 indicado de al menos 20 consultas y amplía el análisis a sexo, carreras, procedencia,
 completitud, advertencias, duplicados de fuente y aspirantes dentro de su cohorte.
 
@@ -240,5 +244,5 @@ Detener solo procesos propios con Ctrl+C. `docker compose stop` conserva datos.
 No ejecutar `docker compose down -v` ni borrar bases, colecciones o registros.
 .gitignore excluye .env, frontend/.env.local, data/raw, data/reports, .venv,
 node_modules, dist y cachés. Las plantillas .env.example y lockfiles sí se versionan.
-El catálogo actual se desarrolla en feature/consultas-mongodb y queda pendiente
-de autorización para commit, merge y push. No hay publicaciones automáticas.
+La integración actual se desarrolla en feature/explorador-consultas y queda
+pendiente de autorización para commit, merge y push. No hay publicaciones automáticas.

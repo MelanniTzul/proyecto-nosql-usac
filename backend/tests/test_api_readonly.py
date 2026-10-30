@@ -60,7 +60,7 @@ class ReadOnlyAPITests(unittest.TestCase):
         self.get('/api/health')
         self.assertEqual(self.get('/api/health/databases')['status'],'ok')
         self.get('/docs')
-        self.assertEqual(len(self.get('/openapi.json')['paths']),11)
+        self.assertEqual(len(self.get('/openapi.json')['paths']),14)
 
     def test_mongo_statistics_and_groups(self):
         stats=self.get('/api/estadisticas','mongodb')['data']
