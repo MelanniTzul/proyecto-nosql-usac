@@ -51,9 +51,9 @@ Compose v2. Google Chrome es necesario únicamente para las pruebas Playwright
 configuradas con channel chrome. Los comandos siguientes asumen Linux y la raíz
 del proyecto como directorio actual.
 
-Obtener la carpeta de entrega completa, incluyendo las etapas 5 y 6. Hasta que se
-publiquen los cambios locales, un clon de main o develop puede contener una versión
-anterior. No cambiar de rama con modificaciones sin revisar ni descartarlas.
+Obtener la carpeta de entrega completa, incluyendo las etapas 5 y 6. La aplicación previa está publicada, pero el nuevo catálogo de 30 consultas
+permanece local en feature/consultas-mongodb hasta autorizar su publicación. Un clon
+de main o develop puede no contener ese catálogo. No cambiar de rama con modificaciones sin revisar ni descartarlas.
 
 ```bash
 python3 --version
@@ -266,8 +266,9 @@ se encuentran en [etapa 5](etapa-5.md).
 ### MongoDB
 
 Archivo: [mongo_analytics.py](../backend/app/services/mongo_analytics.py).
-Se distinguen siete operaciones de consulta de la API; no se cuentan combinaciones
-de parámetros como si fueran consultas distintas ni catálogos reutilizados dos veces.
+La API contiene siete operaciones de consulta, reutilizadas por el nuevo catálogo
+de 30 consultas. No se cuentan combinaciones de parámetros como si fueran consultas
+distintas ni catálogos reutilizados dos veces.
 
 | Función | Consulta existente | Endpoint |
 | --- | --- | --- |
@@ -281,11 +282,22 @@ de parámetros como si fueran consultas distintas ni catálogos reutilizados dos
 
 Los filtros validados se construyen en el servidor. No hay SQL ni consultas MongoDB
 arbitrarias enviadas por el cliente. También existen ping, conteos y comprobaciones
-en ETL/pruebas; no se presentan como parte de un catálogo de 20 consultas analíticas.
-**No están implementadas 20 consultas MongoDB distintas ni resumen_carrera.**
-El plan inicial las menciona, pero el enunciado original no está disponible en el
-repositorio para comprobar su obligatoriedad. Si son requisitos del curso, siguen
-pendientes; este cierre documental no agrega esa funcionalidad.
+en ETL/pruebas; no se cuentan como consultas analíticas adicionales.
+El [catálogo MongoDB](consultas-mongodb.md) incorpora ahora **30 consultas diferentes**:
+reutiliza las siete operaciones de la tabla y añade 23 análisis. Incluye un find,
+un countDocuments y análisis de agregación por año, materia, sexo, carrera,
+procedencia y calidad. No se crearon nuevos endpoints para duplicar la API.
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.queries.mongodb --list
+PYTHONPATH=backend .venv/bin/python -m app.queries.mongodb --all
+```
+
+El código, las explicaciones y los resultados reales de las 30 consultas están en
+ese documento. El requisito indicado de al menos 20 consultas queda cubierto.
+**resumen_carrera sigue sin implementarse**: es una colección materializada
+mencionada en el plan inicial, no un efecto del catálogo de lectura. Los límites
+de tiempo de consola no cambian los de la API.
 
 ### Cypher
 
@@ -337,7 +349,7 @@ npm run test:e2e --prefix frontend
 git diff --check
 ```
 
-La suite backend tiene 38 pruebas; incluye integración real de lectura, salud,
+La suite backend tiene 46 pruebas, incluyendo el catálogo MongoDB; incluye integración real de lectura, salud,
 ETL y grafo. Las pruebas que simulan cargas utilizan dobles en memoria, no las
 bases reales. test_api_readonly requiere USAC_RUN_DB_TESTS=1; las pruebas de salud
 existentes requieren bases disponibles incluso sin esa bandera. No invocar --execute
@@ -374,8 +386,9 @@ Versionar código, pruebas, manuales, plantillas .env.example y lockfiles.
 Excluir .env, frontend/.env.local, contraseñas, data/raw, data/reports, .venv,
 node_modules, dist, cachés y archivos temporales. No incluir credenciales reales
 en capturas o manuales. Revisar git status y git diff --check antes de preparar
-el commit. Las etapas 5 y 6 y estos manuales permanecen pendientes de publicación
-hasta autorización; no se ha realizado commit, merge ni push durante el cierre.
+el commit. Las etapas 5 y 6 ya están publicadas. El catálogo de 30 consultas de
+feature/consultas-mongodb permanece pendiente de autorización para publicación;
+no se ha realizado commit, merge ni push en esta nueva etapa.
 
 ### Verificación de este cierre documental
 
