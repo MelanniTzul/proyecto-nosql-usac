@@ -7,6 +7,7 @@ lectura: estadísticas MongoDB y exploración de relaciones Neo4j.
 La instalación validada contiene **208,453 evaluaciones**, **265,293 nodos** y
 **1,222,881 relaciones**. Las cargas se repitieron sin duplicados. La aplicación
 consulta datos reales; no utiliza estadísticas simuladas si falla una conexión.
+Incluye un catálogo ejecutable de 30 consultas MongoDB que reutiliza la API existente.
 
 ## Documentación de entrega
 
@@ -27,12 +28,12 @@ Ejecutar los comandos desde la raíz del proyecto en Linux.
 
 Usar la carpeta de entrega completa. Si se obtiene de GitHub, la rama publicada
 debe contener las etapas 5 y 6 y los manuales: el main histórico no garantiza eso.
-**En este cierre hay cambios locales pendientes de commit/publicación**; no se
-ha hecho commit, merge ni push. Tras publicarse la rama correspondiente, el clon
-puede hacerse así:
+**El catálogo actual está en feature/consultas-mongodb y sigue pendiente de
+publicación**. La aplicación previa ya está publicada en feature/react-dashboard.
+Para obtener todo el contenido actual, después de publicar la rama del catálogo:
 
 ```bash
-git clone --branch feature/react-dashboard https://github.com/MelanniTzul/proyecto-nosql-usac.git
+git clone --branch feature/consultas-mongodb https://github.com/MelanniTzul/proyecto-nosql-usac.git
 cd proyecto-nosql-usac
 ```
 
@@ -173,7 +174,8 @@ npm run test:e2e --prefix frontend
 git diff --check
 ```
 
-Se verificaron 38 pruebas backend, 13 frontend y 8 de navegador. La integración
+Se verificaron 46 pruebas backend, 13 frontend y 8 de navegador, incluyendo
+la integración real de las 30 consultas del catálogo. La integración
 real es de lectura; las pruebas que simulan cargas usan dobles en memoria.
 Playwright requiere Google Chrome, crea servidores propios en 8010 y 5180 y los
 cierra al finalizar; esos puertos deben estar libres. No requiere apagar los
@@ -194,18 +196,38 @@ Para revisar el build local: `npm run preview --prefix frontend`, puerto 4173,
 manteniendo FastAPI activo. Preview no sustituye un servidor de producción.
 Un despliegue requiere fallback de rutas React a index.html y proxy /api a FastAPI.
 
-## 8. Consultas implementadas y límites de cumplimiento
+## 8. Catálogo de 30 consultas MongoDB y seis Cypher
 
-Hay **siete operaciones MongoDB de consulta de la API** en
-backend/app/services/mongo_analytics.py y **seis consultas Cypher distintas** en
-consultas/neo4j. El [inventario del manual técnico](docs/manual-tecnico.md#7-consultas-realmente-implementadas)
-indica funciones, archivos, parámetros y endpoints, sin duplicar combinaciones de
-filtros como consultas distintas.
+El catálogo [consultas/mongodb/catalogo.json](consultas/mongodb/catalogo.json)
+contiene **30 consultas MongoDB diferentes**, documentadas con objetivo, código
+Python/PyMongo ejecutable, explicación y resultados reales en
+[docs/consultas-mongodb.md](docs/consultas-mongodb.md).
 
-El plan inicial menciona 20 consultas MongoDB y resumen_carrera. **No están
-implementadas 20 consultas distintas ni esa colección materializada.** El enunciado
-original no está en el repositorio; si esos puntos son obligatorios, siguen pendientes.
-Los manuales no presentan estadísticas simuladas ni capacidades no existentes.
+Se reutilizan directamente las siete operaciones válidas de
+backend/app/services/mongo_analytics.py y se añaden 23 análisis complementarios.
+No se agregan 30 endpoints ni se cuentan cambios de filtros como consultas nuevas.
+Las rutas existentes conservan sus contratos. El catálogo cubre el requisito
+indicado de al menos 20 consultas y amplía el análisis a sexo, carreras, procedencia,
+completitud, advertencias, duplicados de fuente y aspirantes dentro de su cohorte.
+
+```bash
+PYTHONPATH=backend .venv/bin/python -m app.queries.mongodb --list
+PYTHONPATH=backend .venv/bin/python -m app.queries.mongodb --all
+PYTHONPATH=backend .venv/bin/python -m app.queries.mongodb --id 24 --output data/reports/consulta-24.json
+```
+
+Estas órdenes solo leen MongoDB. --list no conecta a las bases. --all ejecuta las
+consultas secuencialmente y verifica invariantes; el reporte completo se guarda
+en data/reports/consultas-mongodb.json, excluido de Git. Se usa un presupuesto
+cliente de consola de 60 segundos por consulta, sin cambiar el timeout de la API.
+La consulta 24 puede usar temporales internos de agregación, sin escribir resultados
+en colecciones ni modificar originales.
+
+Se conservan sin cambios las **seis consultas Cypher** en consultas/neo4j,
+documentadas en [etapa 4](docs/etapa-4.md) y en el catálogo MongoDB. No se ejecutan
+cargas Neo4j desde estas consultas. La colección materializada resumen_carrera
+mencionada en el plan inicial sigue sin implementarse; es distinta del catálogo
+analítico de lectura y no se crea como efecto de la verificación.
 
 Limitaciones de interpretación: registros no equivalen a personas globales;
 aspirante de cohorte significa año + correlativo. Se conservan carreras/municipios
@@ -218,5 +240,5 @@ Detener solo procesos propios con Ctrl+C. `docker compose stop` conserva datos.
 No ejecutar `docker compose down -v` ni borrar bases, colecciones o registros.
 .gitignore excluye .env, frontend/.env.local, data/raw, data/reports, .venv,
 node_modules, dist y cachés. Las plantillas .env.example y lockfiles sí se versionan.
-Los cambios de las etapas 5–6 y estos manuales quedan pendientes de autorización
-para commit, merge y push. No hay operaciones de publicación automáticas.
+El catálogo actual se desarrolla en feature/consultas-mongodb y queda pendiente
+de autorización para commit, merge y push. No hay publicaciones automáticas.
