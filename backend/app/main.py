@@ -3,10 +3,13 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError
 
 from app.api.health import router as health_router
-from app.core.config import Settings
+from app.core.config import Settings, HTTPSettings
+from app.core.errors import install_handlers
+from app.api.analytics import router as analytics_router
 from app.database.connections import DatabaseConnections
 
 
@@ -23,10 +26,22 @@ async def lifespan(app: FastAPI):
     finally:
         connections.close()
 
-app = FastAPI(
-    title="Análisis de Pruebas Específicas USAC",
-    description="API del proyecto individual de Bases de Datos NoSQL.",
-    version="0.2.0",
-    lifespan=lifespan,
-)
-app.include_router(health_router, prefix="/api")
+def create_app() -> FastAPI:
+    http = HTTPSettings()
+    application = FastAPI(
+        title="Análisis de Pruebas Específicas USAC",
+        description="Consultas de solo lectura sobre evaluaciones y grafos de admisión.",
+        version="0.5.0",
+        lifespan=lifespan,
+    )
+    application.add_middleware(
+        CORSMiddleware, allow_origins=http.cors_origins,
+        allow_credentials=False, allow_methods=["GET"], allow_headers=["Accept", "Content-Type"],
+    )
+    install_handlers(application)
+    application.include_router(health_router, prefix="/api")
+    application.include_router(analytics_router, prefix="/api")
+    return application
+
+
+app = create_app()

@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    test: { environment: 'jsdom', setupFiles: ['./src/tests/setup.js'], include: ['src/**/*.test.{js,jsx}'] },
     server: { port: Number(env.FRONTEND_PORT || 5173), strictPort: true, proxy: apiProxy },
     preview: { port: 4173, strictPort: true, proxy: apiProxy },
   };
