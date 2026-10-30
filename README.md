@@ -3,12 +3,14 @@
 Proyecto individual de Bases de Datos NoSQL, Ingeniería en Ciencias y Sistemas,
 Universidad de San Carlos de Guatemala.
 
-## Estado: primera etapa
+## Estado: segunda etapa
 
 React consulta el endpoint real de FastAPI y muestra conexión, espera, error y
 reintento. MongoDB y Neo4j se ejecutan en Docker con autenticación y persistencia.
-La conexión de FastAPI a las bases corresponde a la etapa 2. El ETL, las consultas,
+FastAPI comprueba ambas bases con sus controladores oficiales. El ETL, las consultas,
 el dashboard y el explorador de grafos están pendientes; no hay resultados simulados.
+
+La configuración y las pruebas de conexión se explican en [la etapa 2](docs/etapa-2.md).
 
 Los CSV de la [fuente oficial](https://datosabiertos.ingenieria.usac.edu.gt/en/dataset/pruebas-especificas)
 deben inspeccionarse antes de implementar transformaciones o fijar los modelos.
@@ -107,12 +109,13 @@ Con ambos servidores activos, para los puertos predeterminados:
 ```bash
 curl --fail http://127.0.0.1:8000/api/health
 curl --fail http://127.0.0.1:5173/api/health
+curl --fail http://127.0.0.1:8000/api/health/databases
 npm run build --prefix frontend
 .venv/bin/python -m pip check
 docker compose ps
 ```
 
-Ambas peticiones deben devolver:
+Las peticiones a `/api/health` deben devolver:
 
 ```json
 {"status":"ok","service":"usac-admisiones-api"}
@@ -121,6 +124,8 @@ Ambas peticiones deben devolver:
 La segunda pasa por el proxy de Vite. En el navegador debe aparecer **API disponible**.
 El botón repite la petición. La espera tiene un límite de ocho segundos. El resultado
 del endpoint indica disponibilidad de la API; no verifica sus conexiones a las bases.
+El endpoint `/api/health/databases` comprueba MongoDB y Neo4j por separado y devuelve
+HTTP 200 si ambas responden o HTTP 503 si falla alguna; su JSON identifica cuál.
 
 Para revisar la compilación local: `npm run preview --prefix frontend`, puerto 4173,
 manteniendo FastAPI activo. No es un servidor de producción.
@@ -143,8 +148,8 @@ Consultar [la explicación de la etapa 1](docs/etapa-1.md). `.gitignore` excluye
 credenciales locales, `.venv`, `node_modules`, compilaciones y CSV originales.
 Los archivos de dependencias y sus versiones sí se versionan.
 
-Mensaje propuesto para el primer commit manual:
+Mensaje propuesto para el commit manual de esta etapa:
 
 ```text
-feat: crear estructura inicial del proyecto
+feat: configurar conexiones a bases de datos NoSQL
 ```
