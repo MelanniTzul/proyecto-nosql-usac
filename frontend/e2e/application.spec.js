@@ -12,7 +12,7 @@ test('dashboard con datos reales, filtros y navegación', async ({ page, request
   await expect(page.getByRole('heading', { name: 'Panorama de admisión' })).toBeVisible();
   await expect(page.locator('.stat-value').first()).toHaveText(new Intl.NumberFormat('es-GT').format(data.registros));
   await expect(page.locator('.recharts-surface').first()).toBeVisible();
-  await expect(page.getByText('Bases disponibles')).toBeVisible();
+  await expect(page.getByText('Sistema disponible')).toBeVisible();
   await page.screenshot({ path: `${shots}/dashboard-desktop.png`, fullPage: true });
   await page.getByLabel('Año de ingreso').selectOption('2024');
   await page.getByLabel('Materia', { exact: true }).selectOption('MATEMATICA');

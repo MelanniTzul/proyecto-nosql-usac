@@ -1,4 +1,4 @@
-export function Loading({ label = 'Consultando datos reales…' }) {
+export function Loading({ label = 'Consultando resultados…' }) {
   return <div className="state loading-state" role="status"><span className="spinner" aria-hidden="true"/><span>{label}</span></div>;
 }
 export function ErrorState({ error, retry }) {
@@ -13,8 +13,8 @@ export function QueryState({ query, children }) {
   if (query.status !== 'success') return null;
   return children(query.response.data, query.response.meta);
 }
-export function SourceNote({ graph = false }) {
-  return <p className="source-note"><span className={`source-dot ${graph ? 'graph-dot' : ''}`}/>{graph ? 'Neo4j · relaciones de la fuente' : 'MongoDB · registros validados'}<span>Datos de admisión 2015–2024</span></p>;
+export function SourceNote() {
+  return <p className="source-note">Datos de admisión 2015–2024</p>;
 }
 export function PageHeading({ eyebrow, title, description, children }) {
   return <div className="page-heading"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p className="page-description">{description}</p></div>{children}</div>;
