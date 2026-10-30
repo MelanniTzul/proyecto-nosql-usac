@@ -76,11 +76,11 @@ export default function QueriesPage() {
     setParams({ cohorte_id: id });
     setExecution({ engine: 'neo4j', id: '4', url: endpoint('consultas/neo4j/4', { cohorte_id: id }) });
   }
-  return <><PageHeading eyebrow="CATÁLOGO CERRADO · SOLO LECTURA" title="Consultas NoSQL" description="Selecciona un análisis existente, ejecútalo y consulta sus resultados reales. No se admite código arbitrario."/>
+  return <><PageHeading eyebrow="ANÁLISIS DISPONIBLES" title="Consultas NoSQL" description="Selecciona un análisis y consulta sus resultados."/>
     <div className="query-tabs" role="tablist" aria-label="Motor de consultas"><button role="tab" aria-selected={engine === 'mongodb'} onClick={() => select('mongodb')}>MongoDB · 30 consultas</button><button role="tab" aria-selected={engine === 'neo4j'} onClick={() => select('neo4j')}>Neo4j · 6 consultas</button></div>
     <QueryState query={catalog}>{() => <section className="panel query-selection" role="tabpanel" aria-label={engine === 'mongodb' ? 'Consultas MongoDB' : 'Consultas Neo4j'}><form onSubmit={execute}>
       <label className="query-selector">Consulta del catálogo<select aria-label="Consulta del catálogo" value={identity} onChange={(event) => select(engine, event.target.value)}>{list.map((q) => <option value={q.id} key={q.id}>{String(q.id).padStart(2, '0')}. {q.titulo}</option>)}</select></label>
-      {selected && <><h2>{selected.titulo}</h2><p className="page-description">{selected.objetivo}</p><p className="method-note query-explanation">{selected.explicacion}</p>
+      {selected && <><h2>{selected.titulo}</h2><p className="page-description">{selected.objetivo}</p><p className="method-note query-explanation">{engine === 'mongodb' ? selected.explicacion : 'Los resultados corresponden a los filtros seleccionados.'}</p>
       {engine === 'mongodb' ? <p className="info-note">Se ejecuta la consulta existente con sus parámetros predefinidos: {Object.keys(selected.valores_defecto).length ? JSON.stringify(selected.valores_defecto) : 'conjunto completo, según la definición del catálogo'}. La consulta 24 puede tardar hasta un minuto.</p> : <div className="query-parameters">{selected.parametros.map((field) => <label className="filter-field" key={field}>{labels[field]}
         {field === 'cohorte_id' ? <input required aria-label={labels[field]} value={params[field] || ''} maxLength={37} pattern="(201[5-9]|202[0-4]):[0-9a-f]{20,32}" onChange={(event) => changeParameter(field, event.target.value)} placeholder="año:correlativo"/> : <select required aria-label={labels[field]} value={params[field] ?? ''} onChange={(event) => changeParameter(field, event.target.value)}>
           <option value="">Seleccionar</option>
@@ -98,7 +98,7 @@ export default function QueriesPage() {
       </>}
     </form></section>}</QueryState>
     {result.status === 'idle' && <section className="panel query-idle"><h2>Elige una consulta para comenzar</h2><p>Los resultados aparecerán aquí después de pulsar Ejecutar consulta.</p></section>}
-    <QueryState query={result}>{(data, meta) => <section className="panel query-results" data-testid="query-result" data-engine={engine} data-query-id={data.id}><div className="panel-heading"><div><p className="eyebrow">{meta.fuente.toUpperCase()} · CONSULTA {String(data.id).padStart(2, '0')}</p><h2>{data.titulo}</h2><p>{data.filas} filas / registros de salida · {data.segundos} segundos</p></div><span className="badge success">Ejecución correcta</span></div>
+    <QueryState query={result}>{(data, meta) => <section className="panel query-results" data-testid="query-result" data-engine={engine} data-query-id={data.id}><div className="panel-heading"><div><p className="eyebrow">CONSULTA {String(data.id).padStart(2, '0')}</p><h2>{data.titulo}</h2><p>{data.filas} filas / registros de salida · {data.segundos} segundos</p></div><span className="badge success">Ejecución correcta</span></div>
       {meta.truncado && <p className="info-note">Resultado limitado por la consulta original o por el máximo de respuesta. No representa un conteo total adicional.</p>}
       {data.grafo?.nodes.length > 0 && <GraphView data={data.grafo} meta={meta} onCohort={showCohort} canReturn={false} onReturn={() => {}}/>}
       <QueryResultTable value={data.resultado}/>

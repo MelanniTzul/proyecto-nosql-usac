@@ -25,7 +25,7 @@ export default function StatisticsPage() {
   // Secciones independientes: no se propagan filtros que un endpoint no admite.
   const [range, apply, reset] = useFilters({ desde: '2015', hasta: '2024' }, 'historico_');
   const query = useApi(range.desde && range.hasta ? endpoint('estadisticas/aprobacion', range) : null);
-  return <><PageHeading eyebrow="ESTADÍSTICAS · MONGODB" title="Resultados en perspectiva" description="Compara cohortes y categorías con filtros propios para cada análisis."/>
+  return <><PageHeading eyebrow="ESTADÍSTICAS" title="Resultados en perspectiva" description="Compara cohortes y categorías con filtros propios para cada análisis."/>
     <ChartPanel title="Aprobación por año y materia" subtitle="Porcentaje calculado a partir de los registros de cada grupo"><FilterBar values={range} fields={['desde', 'hasta']} requiredFields={['desde', 'hasta']} onApply={apply} onReset={reset}/><QueryState query={query}>{(rows) => rows.length ? <><TrendChart rows={rows}/><details className="data-details"><summary>Ver tabla histórica</summary><DataTable label="Estadísticas históricas" headers={['Año', 'Materia', 'Registros', 'Aprobación']} rows={rows.map((r) => [r.anio, r.materia, number(r.registros), percent(r.porcentaje)])}/></details></> : <EmptyState clear={reset}/>}</QueryState></ChartPanel>
     <div className="statistics-sections"><CareerSection/><ProvenanceSection/></div><SourceNote/>
   </>;
